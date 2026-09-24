@@ -713,8 +713,10 @@ const DitherVeil = ({
 
     const locate = e => {
       const rect = container.getBoundingClientRect();
-      pointer.x = e.clientX - rect.left;
-      pointer.y = e.clientY - rect.top;
+      const x = 'clientX' in e ? e.clientX : e.touches?.[0]?.clientX ?? 0;
+      const y = 'clientY' in e ? e.clientY : e.touches?.[0]?.clientY ?? 0;
+      pointer.x = x - rect.left;
+      pointer.y = y - rect.top;
       pointer.placed = true;
     };
     const onMove = e => {
@@ -730,16 +732,31 @@ const DitherVeil = ({
       wake();
     };
     const onDown = e => {
-      onMove(e);
+      locate(e);
+      pointer.inside = true;
+      pointer.fresh = true;
+      wake();
       if (!settingsRef.current?.clickBurst || (e.pointerType === 'mouse' && e.button !== 0)) return;
       bursts.push({ x: pointer.x, y: pointer.y, start: performance.now() });
       if (bursts.length > MAX_BURSTS) bursts.shift();
+    };
+    const onTouchMove = e => {
+      e.preventDefault();
+      onMove(e.touches?.[0] ?? e);
+    };
+    const onTouchStart = e => {
+      e.preventDefault();
+      onDown(e.touches?.[0] ?? e);
     };
     container.addEventListener('pointermove', onMove, { passive: true });
     container.addEventListener('pointerenter', onMove, { passive: true });
     container.addEventListener('pointerdown', onDown, { passive: true });
     container.addEventListener('pointerleave', onLeave, { passive: true });
     container.addEventListener('pointercancel', onLeave, { passive: true });
+    container.addEventListener('touchstart', onTouchStart, { passive: false });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onLeave, { passive: true });
+    container.addEventListener('touchcancel', onLeave, { passive: true });
 
     const resizeObserver = new ResizeObserver(() => {
       layout();
