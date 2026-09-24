@@ -1,7 +1,7 @@
 import DitherVeil from './components/DitherVeil';
 import './styles.css';
 
-const PHOTO = '/portrait.jpg';
+const PHOTO = './portrait.jpg';
 
 function App() {
   return (
