@@ -605,7 +605,7 @@ const DitherVeil = ({
         brush.y = brush.py = targetY;
         pointer.fresh = false;
       } else {
-        const follow = 1 - Math.exp(-dt / 0.035);
+        const follow = 1 - Math.exp(-dt / (pointer.inside ? 0.08 : 0.18));
         brush.x += (targetX - brush.x) * follow;
         brush.y += (targetY - brush.y) * follow;
       }
@@ -721,7 +721,7 @@ const DitherVeil = ({
     };
     const onMove = e => {
       locate(e);
-      if (!pointer.inside) {
+      if (!pointer.inside || e.pointerType === 'touch' || e.touches) {
         pointer.inside = true;
         pointer.fresh = true;
       }
@@ -735,6 +735,10 @@ const DitherVeil = ({
       locate(e);
       pointer.inside = true;
       pointer.fresh = true;
+      brush.x = pointer.x;
+      brush.y = pointer.y;
+      brush.px = pointer.x;
+      brush.py = pointer.y;
       wake();
       if (!settingsRef.current?.clickBurst || (e.pointerType === 'mouse' && e.button !== 0)) return;
       bursts.push({ x: pointer.x, y: pointer.y, start: performance.now() });
